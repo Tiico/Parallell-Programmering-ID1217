@@ -1,0 +1,37 @@
+---Matrix A assignment---
+
+Following are some runtimes for the matrix calculations. 
+
+Using 10000 x 10000 matrix with 1, 2, 3, 4, 6, 8, 10 cores on the KTH shell server.
+
+1 Core: 0.653782 seconds
+2 Cores: 0.33145 seconds
+3 Cores: 0.222543 seconds
+4 Cores: 0.321686 seconds
+6 Cores: 0.224099 seconds
+8 Cores: 0.18065 seconds
+10 Cores: 0.183268 seconds
+
+---Matrix B assignment---
+
+Using 10000 x 10000 matrix with 1, 2, 3, 4, 6, 8, 10 cores on the KTH shell server.
+
+1 Core: 0.573076 seconds
+2 Cores: 0.29152 seconds
+3 Cores: 0.196785 seconds
+4 Cores: 0.293524 seconds
+6 Cores: 0.206358 seconds
+8 Cores: 0.160424 seconds
+10 Cores: 0.163064 seconds
+
+---Matrix C assignment---
+
+Using 10000 x 10000 matrix with 1, 2, 3, 4, 6, 8, 10 cores on the KTH shell server.
+
+1 Core: 0.574658 seconds
+2 Cores: 0.296354 seconds
+3 Cores: 0.199841 seconds
+4 Cores: 0.197721 seconds
+6 Cores: 0.166191 seconds
+8 Cores: 0.145668 seconds
+10 Cores: 0.163191 seconds

@@ -1,0 +1,19 @@
+Following are some runtimes for the PI calculations. 
+
+Using 1 000 000 000 "precision" with 1, 2, 3, 4 cores on my personal PC (i5 3230m) 2 cores 4 threads.
+
+1 Core: 9.02892 seconds
+2 Cores: 6.36564 seconds
+3 Cores: 4.51865 seconds
+4 Cores: 4.22166 seconds
+
+Using 1 000 000 000 "precision" with 1, 2, 3, 4, 6, 8, 10 cores on the KTH shell server.
+
+1 Core: 10.6461 seconds
+2 Cores: 5.33613 seconds
+3 Cores: 3.56846 seconds
+4 Cores: 2.68024 seconds
+6 Cores: 2.83843 seconds
+8 Cores: 2.54997 seconds
+10 Cores: 2.50733 seconds
+
