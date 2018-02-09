@@ -15,7 +15,7 @@
 
 double start_time, end_time;
 
-#define MAXSIZE 10000  /* maximum matrix size */
+#define MAXSIZE 20000  /* maximum matrix size */
 #define MAXWORKERS 8   /* maximum number of workers */
 
 typedef struct{
@@ -27,7 +27,7 @@ typedef struct{
 /* Set global variables */
 int numWorkers;
 int size;
-int sum = 0;
+long sum = 0;
 int matrix[MAXSIZE][MAXSIZE];
 index Max;
 index Min;
@@ -38,7 +38,8 @@ void *Worker(void *);
 int main(int argc, char *argv[]) {
   index Max;
   index Min;
-  int i, j, total=0;
+  int i, j;
+  long total=0;
 
   /* read command line args if any */
   size = (argc > 1)? atoi(argv[1]) : MAXSIZE;

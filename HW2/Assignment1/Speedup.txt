@@ -1,0 +1,31 @@
+Speedup for the Pi assignment using OpenMP.
+
+------- 500 000 000 Precision -------
+Sequential execution time: 2.214044 s
+
+2 cores: 1.180265 s , speedup = 1.88
+
+3 cores: 0.902771, speedup = 2.45
+
+4 cores: 0.738680, speedup = 3.00
+
+------- 400 000 000 Precision -------
+Sequential execution time: 1.786850
+
+2 cores: 0.00159183 s, speedup = 1.70
+
+3 cores: 0.00133778 s, speedup = 2.02
+
+4 cores: 0.00128731 s, speedup = 2.10
+
+------- 100 000 000 Precision -------
+Sequential execution time: 0.444505 s
+
+2 cores: 1.059867 s, speedup = 1.69
+
+3 cores: 0.716390 s, speedup = 2.49
+
+4 cores: 0.607439 s, speedup = 2.94
+
+
+The speedup from using parallelism comes when the tasks starts to increase in size. This is because of the overhead that comes with setting up the threads, etc. 

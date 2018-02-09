@@ -1,0 +1,30 @@
+Speedup for the MatrixSum assignment using OpenMP.
+
+------- 20000 x 20000 matrix -------
+Sequential execution time: 1.05585 s
+
+2 cores: 0.608281, speedup = 1.74
+
+3 cores: 0.441894, speedup = 2.39
+
+4 cores: 0.386797, speedup = 2.73
+
+------- 10000 x 10000 matrix -------
+Sequential execution time: 0.258042 s
+
+2 cores: 0.132768 s, speedup = 1.94
+
+3 cores: 0.115827 s, speedup = 2.31
+
+4 cores: 0.095205 s, speedup = 2.71
+
+------- 1000 x 1000 matrix -------
+Sequential execution time: 0.00270385
+
+2 cores: 0.00159183 s, speedup = 1.70
+
+3 cores: 0.00133778 s, speedup = 2.02
+
+4 cores: 0.00128731 s, speedup = 2.10
+
+The speedup from using parallelism comes when the tasks starts to increase in size. This is because of the overhead that comes with setting up the threads, etc. 

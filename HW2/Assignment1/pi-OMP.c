@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#define MAXSIZE 100000000
+#define MAXSIZE 900000000
 #define MAXWORKERS 10
 
 long interval = 0;
