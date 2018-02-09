@@ -9,6 +9,8 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 #include <limits.h>
 
 double start_time, end_time;
@@ -27,15 +29,15 @@ int numWorkers;
 int size;
 int sum = 0;
 int matrix[MAXSIZE][MAXSIZE];
-index maxIndices;
-index minIndices;
+index Max;
+index Min;
 
 void *Worker(void *);
 
 /* read command line, initialize, and create threads */
 int main(int argc, char *argv[]) {
-  index localMax;
-  index localMin;
+  index Max;
+  index Min;
   int i, j, total=0;
 
   /* read command line args if any */
@@ -47,17 +49,27 @@ int main(int argc, char *argv[]) {
   omp_set_num_threads(numWorkers);
 
   /* initialize the matrix */
+  srand(time(NULL));
   for (i = 0; i < size; i++) {
-    //  printf("[ ");
 	  for (j = 0; j < size; j++) {
       matrix[i][j] = rand()%99;
-      //	  printf(" %d", matrix[i][j]);
 	  }
-	  //	  printf(" ]\n");
   }
-  maxIndices.value = matrix[0][0];
-  minIndices.value = matrix[0][0];
 
+  #ifdef DEBUG
+    for (i = 0; i < size; i++) {
+  	  printf("[ ");
+  	  for (j = 0; j < size; j++) {
+  	    printf(" %d", matrix[i][j]);
+  	  }
+  	  printf(" ]\n");
+    }
+  #endif
+
+
+
+  Max.value = matrix[0][0];
+  Min.value = matrix[0][0];
 
   start_time = omp_get_wtime();
 #pragma omp parallel for reduction (+:total) private(j)
@@ -65,41 +77,32 @@ int main(int argc, char *argv[]) {
     for (j = 0; j < size; j++){
       total += matrix[i][j];
 
-      if (matrix[i][j] > localMax.value) {
-          localMax.value = matrix[i][j];
-          localMax.i = i;
-          localMax.j = j;
+    if (matrix[i][j] > Max.value) {
+      #pragma omp critical(updateMax)
+      {
+      if (matrix[i][j] > Max.value) {
+        Max.value = matrix[i][j];
+        Max.i = i;
+        Max.j = j;
       }
-
-      if (matrix[i][j] < localMin.value) {
-        localMin.value = matrix[i][j];
-        localMin.i = i;
-        localMin.j = j;
       }
     }
-
-    #pragma omp atomic
-        sum += total;
-
-    if (localMax.value > maxIndices.value) {
-      if (localMax.value > maxIndices.value) {
-        maxIndices.value = localMax.value;
-        maxIndices.i = localMax.i;
-        maxIndices.j = localMax.j;
-      }
-      if (localMin.value > minIndices.value) {
-        if (localMin.value > minIndices.value) {
-        minIndices.value = localMin.value;
-        minIndices.i = localMin.i;
-        minIndices.j = localMin.j;
+      if (matrix[i][j] < Min.value) {
+        #pragma omp critical (updateMin)
+        {
+        if (matrix[i][j] < Min.value) {
+        Min.value = matrix[i][j];
+        Min.i = i;
+        Min.j = j;
       }
     }
-// implicit barrier
+    }
+  } // implicit barrier
 
   end_time = omp_get_wtime();
 
   printf("the total is %d\n", total);
-  printf("%d\n", maxIndices.value);
+  printf("Max value: %d (%d, %d)\n", Max.value, Max.j, Max.i);
+  printf("Min value: %d (%d, %d)\n", Min.value, Min.j, Min.i);
   printf("it took %g seconds\n", end_time - start_time);
-}
 }
