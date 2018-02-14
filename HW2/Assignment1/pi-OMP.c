@@ -19,9 +19,9 @@ int main(int argc, char *argv[]){
   volatile long double pi = 0.0;
   int i;
   step = 1.0/(double)interval;
+  omp_set_num_threads(numWorkers);
 
   double start_time = omp_get_wtime();
-    omp_set_num_threads(numWorkers);
     #pragma omp parallel for private(x) reduction(+:sum)
     for (i = 0; i < interval; i++) {
       x = (i+0.5)*step;
