@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #define CAPACITY 50  /* Pot CAPACITY */
-#define MAXBABYBIRDS 10   /* maximum number of baby birds */
+#define MAXBABYBIRDS 30   /* maximum number of baby birds */
 #define MAXINTERVAL 5
 #define MININTERVAL 1
 
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
      sem_wait(&dishEmpty);
      printf("MamaBird fills the dish \n");
      sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
-     dishCounter = rand()%CAPACITY;
+     dishCounter = (rand()%CAPACITY)+1;
      sem_post(&dishFull);
    }
      pthread_exit(NULL);
