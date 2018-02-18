@@ -1,0 +1,4 @@
+For this assignment I decided on using 3 Semaphores, two of these were used for the "pass the baton" technique when the pot of honey has become full.
+The way I implemented this was that if the pot has become full then the bee that filled it will wake the bear up and the bear will then eat upp all the honey(setting pot = 0)
+and then resuming filling the pot with the bees.
+I used the last semaphore for the critical section making sure only 1 bee can fill the pot at the same time.

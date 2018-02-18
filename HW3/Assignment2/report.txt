@@ -1,0 +1,2 @@
+In this assignment the problem is very similar to that of the bear.
+The difference obviously being that there are a lot of threads decrementing while 1 thread fills it up, basically the reverse of the bear problem.

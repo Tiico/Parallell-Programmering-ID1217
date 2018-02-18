@@ -54,8 +54,6 @@ int main(int argc, char *argv[]) {
   pthread_exit(NULL);
 }
 
-/* Each worker sums the values in one strip of the matrix.
-   After a barrier, worker(0) computes and prints the total */
    void *bee(void *arg) {
      long id = (long)arg;
      while (true) {
