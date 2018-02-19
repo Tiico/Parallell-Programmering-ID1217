@@ -2,20 +2,19 @@
 #define _REENTRANT
 #endif
 #include <pthread.h>
-#include <semaphore.h>
-#include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include "monitor.h"
+#include <iostream>
 #include <stdbool.h>
-#include <limits.h>
 #define CAPACITY 50  /* Pot CAPACITY */
 #define MAXBEES 10   /* maximum number of bees */
 #define MAXMEALS 10  /* specify max amount of meals for the bear.*/
-#define MAXINTERVAL 5
-#define MININTERVAL 1
+#define MAX_GATHER_TIME 500 /* Max time of gathering honey. */
+#define MIN_GATHER_TIME 100 /* Min time of gathering honey. */
 
-sem_t potFull, potEmpty, critSec;
-
-int amountBees;
+int amountBees, times_eaten;
 
 /*Counters for Bee's */
 int potCounter;
@@ -23,8 +22,13 @@ int potCounter;
 void *bee(void *);
 void *bear(void *);
 
+bool done;
+
+monitor * mon;
+
 int main(int argc, char *argv[]) {
   long l; /* use long in case of a 64-bit system */
+  done = false;
   //Seed the rand function
   srand(time(NULL));
   pthread_attr_t attr;
@@ -34,14 +38,11 @@ int main(int argc, char *argv[]) {
   pthread_attr_init(&attr);
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 
-  sem_init(&potFull, 0, 0);
-  sem_init(&potEmpty, 0, 0);
-  sem_init(&critSec, 0, 1);
-
   /* read command line args if any */
   amountBees = (argc > 1)? atoi(argv[1]) : MAXBEES;
   if (amountBees > MAXBEES) amountBees = MAXBEES;
 
+  mon = new monitor();
   /* do the parallel work: create the workers */
   for (l = 0; l < amountBees; l++){
     pthread_create(&animal[l], &attr, bee, (void *) l);
@@ -51,35 +52,34 @@ int main(int argc, char *argv[]) {
   for (l = 0; l < amountBees + 1; l++) {
       pthread_join(animal[l], NULL);
   }
+  delete mon;
   pthread_exit(NULL);
 }
 
    void *bee(void *arg) {
-     long id = (long)arg;
-     while (true) {
-       sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
+     long number = (long)arg;
+     while (done == false) {
+       sleep((rand() % (MAX_GATHER_TIME - MIN_GATHER_TIME)) + MIN_GATHER_TIME);
 
-       sem_wait(&critSec);
-       potCounter++;
-       printf("Thread ID: %d fills pot, (%d/%d)\n", id, potCounter, CAPACITY);
-       if (potCounter >= CAPACITY) {
-         printf("Honey pot is full\n");
-          sem_post(&potFull);
-          printf("Thread ID: %d wakes bear\n", id);
-          sem_wait(&potEmpty);
-          printf("Bear has eaten the honey\n");
+       if(done){
+         pthread_exit(NULL);
        }
-       sem_post(&critSec);
+       mon->fill_pot(number);
+       if(done){
+         pthread_exit(NULL);
+       }
      }
      pthread_exit(NULL);
    }
 
    void *bear(void *arg) {
      while(true){
-     sem_wait(&potFull);
-     printf("Bear is awake and eats the honey \n");
-     potCounter = 0;
-     sem_post(&potEmpty);
-   }
-     pthread_exit(NULL);
-   }
+      mon->eat_honey();
+      times_eaten++;
+      std::cout << "The bear has now eaten " << times_eaten << " out of " << MAXMEALS << " times." << std::endl;
+      if(times_eaten >= MAXMEALS){
+        done = true;
+        pthread_exit(NULL);
+    }
+  }
+}
