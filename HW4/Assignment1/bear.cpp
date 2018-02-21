@@ -94,11 +94,11 @@ void * bear(void * input)
 {
     while(true)
     {
+        sleep(1);
         mon->eat_honey(); /* Eat honey from the pot. */
         /* Update times_eaten. */
         times_eaten++; /* ONLY the bear can update this, therefore we do not need mutex. */
-        std::cout << "The bear has now eaten " << times_eaten << " out of " << MAXMEALS
-            << " times." << std::endl;
+        std::cout << "The bear has now eaten " << times_eaten << "/" << MAXMEALS << " times." << std::endl;
         if(times_eaten >= MAXMEALS) /* If we are done eating. */
         {
             done = true; /* Signal to the bees that we are done. */

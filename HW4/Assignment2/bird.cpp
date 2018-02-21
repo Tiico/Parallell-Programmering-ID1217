@@ -8,28 +8,26 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#define MAX_BABYBIRDS 10         /* Max number of bees.          */
+#define MAX_BABYBIRDS 10   /* Max number of babybirds.     */
 #define MAXMEALS 10        /* Max number of times eating.  */
 #define MAXINTERVAL 3
 #define MININTERVAL 1
 
-void * babybird(void *);         /* Simulation method for bees.   */
-void * mamabird(void *);        /* Simulation method for bears. */
+void * babybird(void *);         /* Simulation method for babybird.   */
+void * mamabird(void *);        /* Simulation method for mamabird. */
 
-/* Counters to hold number of bees and the number of
- * times the bear has eaten. */
+/* Counters to hold number of babybirds and the number of times mamabird has filled the dish. */
 int amountOfBabybirds, times_filled;
 
-/* Boolean to signal to the bees that the simulation is done. */
+/* Boolean to signal that the simulation is done. */
 bool done;
 
-/* The monitor for the bathroom. */
 monitor * mon;
 
 /**
  * Main method. First initializes and then reads the input of how
- * many bees that should be in the simulation. Then
- * creates the threads and then joins them again. */
+ * many babybirds that should be in the simulation. Then
+ * creates the threads and joins them again. */
 int main(int argc, char ** argv)
 {
     pthread_t animals[MAX_BABYBIRDS + 1]; /* The threads are saved here. */
@@ -43,7 +41,7 @@ int main(int argc, char ** argv)
     done = false;
 
     if(argc > 1){
-        /* We cap them at MAX_BEES. */
+        /* We cap them at MAX_BABYBIRDS. */
         amountOfBabybirds = (atoi(argv[1]) > MAX_BABYBIRDS) ? MAX_BABYBIRDS : atoi(argv[1]);
     }
     else{
@@ -58,7 +56,7 @@ int main(int argc, char ** argv)
     srand(time(NULL));
 
     mon = new monitor(); /* Create the monitor. */
-    for(index = 0; index < amountOfBabybirds; ++index) /* Spawn the bee threads. */
+    for(index = 0; index < amountOfBabybirds; ++index) /* Spawn the babybird threads. */
     {
         pthread_create(&animals[index], &attr, babybird, (void *) index);
     }
@@ -75,14 +73,13 @@ void * babybird(void * input)
     long number = (long) input;
     while(done == false)
     {
-        /* Sleep to simulate time required to gather honey. */
         sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
 
         if(done) /* If the simulation is done. */
         {
             pthread_exit(NULL);
         }
-        mon->eat_dish(number); /* Fills the pot with one portion of honey. */
+        mon->eat_dish(number); /* Fills the dish */
         if(done) /* If the simulation is done. */
         {
             pthread_exit(NULL);
@@ -94,10 +91,9 @@ void * mamabird(void * input)
 {
     while(true)
     {
-        mon->fill_dish(); /* Eat honey from the pot. */
-        /* Update times_eaten. */
-        times_filled++; /* ONLY the bear can update this, therefore we do not need mutex. */
-        std::cout << "The bear has now eaten " << times_filled << " out of " << MAXMEALS << " times." << std::endl;
+        mon->fill_dish();
+        times_filled++; /* ONLY Mamabird can update this, therefore we do not need mutex. */
+        std::cout << "Mamabird has now eaten " << times_filled << "/" << MAXMEALS << " times." << std::endl;
         if(times_filled >= MAXMEALS) /* If we are done filling. */
         {
             done = true; /* Signal to the babybirds that we are done. */

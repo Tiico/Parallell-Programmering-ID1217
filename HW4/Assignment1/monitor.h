@@ -16,8 +16,6 @@ class monitor
 
         const static int MAX_COUNT_HONEY = 50; /* Max portions of honey in pot. */
     private:
-        double read_timer();
-
         pthread_cond_t pot_empty; /* Used to wait for the pot to be empty. */
         pthread_cond_t pot_full; /* Used to wait fot the pot to be full. */
         pthread_mutex_t pot_lock; /* Mutex lock for the pot. */

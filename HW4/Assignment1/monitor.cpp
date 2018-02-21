@@ -11,9 +11,6 @@ monitor::monitor()
 
     /* Initiates the counter. */
     honey_count = 0;
-
-    /* Read timer the first time. */
-    read_timer();
 }
 
 /**
@@ -29,13 +26,14 @@ monitor::~monitor()
 void monitor::fill_pot(long number)
 {
     pthread_mutex_lock(&pot_lock); /* Lock for mutex. */
-    honey_count++; /* Increase the portions of honey inside the pot. */
-    std::cout << read_timer() << ": Bee " << number << " fills the pot (" << honey_count << "/" << MAX_COUNT_HONEY << ")." << std::endl;
-    if(honey_count == MAX_COUNT_HONEY) /* If the pot is full we signal to the bear. */
+    if(honey_count < MAX_COUNT_HONEY) /* If the pot is full we signal to the bear. */
     {
-        std::cout << read_timer() << ": Bee " << number << " wakes the bear and waits for the pot to be empty." << std::endl;
+        honey_count++; /* Increase the portions of honey inside the pot. */
+        std::cout << "Bee " << number << " fills the pot (" << honey_count << "/" << MAX_COUNT_HONEY << ")" << std::endl;
+
         while(honey_count == MAX_COUNT_HONEY) /* Make sure we dont try to fill a full pot. */
         {
+            std::cout << "Bee " << number << " wakes the bear and waits for the pot to be empty" << std::endl;
             pthread_cond_broadcast(&pot_full); /* Signal the bear that the pot is full. */
             pthread_cond_wait(&pot_empty, &pot_lock); /* Wait for the pot to be empty. */
         }
@@ -50,36 +48,15 @@ void monitor::fill_pot(long number)
 void monitor::eat_honey()
 {
     pthread_mutex_lock(&pot_lock); /* Lock for mutex. */
-    std::cout << std::endl << read_timer() << ": Bear wants more honey!" << std::endl;
     if(honey_count < MAX_COUNT_HONEY) /* If the pot is not full we wait. */
     {
-        std::cout << read_timer() << ": Bear is waiting for the pot to be full." << std::endl << std::endl;
+        std::cout << "Bear goes to sleep" << std::endl << std::endl;
         while(honey_count < MAX_COUNT_HONEY){
             pthread_cond_wait(&pot_full, &pot_lock); /* Wait for the pot to be full. */
         }
     }
     honey_count = 0; /* Eat the honey. */
-    std::cout << std::endl << read_timer() << ": Bear ate all the honey!" << std::endl << std::endl;
+    std::cout << std::endl << "Bear ate all the honey!" << std::endl << std::endl;
     pthread_cond_broadcast(&pot_empty); /* Let the bees know that the pot is empty. */
     pthread_mutex_unlock(&pot_lock); /* No longer need mutex. */
-}
-
-
-/**
- * Timer. First time called will be the starting time and any calls
- * after will calculate the time that has passed since intial call.
- *
- * Taken from lab1.
- */
-double monitor::read_timer() {
-    static bool initialized = false;
-    static struct timeval start;
-    struct timeval end;
-    if( !initialized )
-    {
-        gettimeofday( &start, NULL );
-        initialized = true;
-    }
-    gettimeofday( &end, NULL );
-    return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
 }
