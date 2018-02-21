@@ -28,18 +28,15 @@ monitor::~monitor()
  */
 void monitor::eat_dish(long number)
 {
-    while(true) /* If the pot is full we signal to the bear. */
-    {
       pthread_mutex_lock(&pot_lock); /* Lock for mutex. */
-      dish_count--; /* Increase the portions of honey inside the pot. */
-      std::cout << read_timer() << ": Babybird " << number << " eats from the dish (" << dish_count << "/" << MAX_COUNT_DISH << ")." << std::endl;
-      if (dish_count == 0) {
+      while (dish_count == 0) {
         pthread_cond_broadcast(&pot_empty);
         std::cout << read_timer() << ": Babybird " << number << " chirps for more food." << std::endl;
         pthread_cond_wait(&pot_full, &pot_lock);
       }
+      dish_count--;
+      std::cout << read_timer() << ": Babybird " << number << " eats from the dish (" << dish_count << "/" << MAX_COUNT_DISH << ")." << std::endl;
       pthread_mutex_unlock(&pot_lock); /* Unlock because we no longer need mutex. */
-    }
 }
 
 /**
