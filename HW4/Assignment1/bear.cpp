@@ -1,85 +1,108 @@
 #ifndef _REENTRANT
 #define _REENTRANT
 #endif
-#include <pthread.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "monitor.h"
+
 #include <iostream>
+#include <pthread.h>
+#include "monitor.h"
+#include <unistd.h>
 #include <stdbool.h>
-#define CAPACITY 50  /* Pot CAPACITY */
-#define MAXBEES 10   /* maximum number of bees */
-#define MAXMEALS 10  /* specify max amount of meals for the bear.*/
-#define MAX_GATHER_TIME 500 /* Max time of gathering honey. */
-#define MIN_GATHER_TIME 100 /* Min time of gathering honey. */
 
-int amountBees, times_eaten;
+#define MAX_BEES 10         /* Max number of bees.          */
+#define MAXMEALS 10        /* Max number of times eating.  */
+#define MAXINTERVAL 3
+#define MININTERVAL 1
 
-/*Counters for Bee's */
-int potCounter;
+void * bee(void *);         /* Simulation method for bees.   */
+void * bear(void *);        /* Simulation method for bears. */
 
-void *bee(void *);
-void *bear(void *);
+/* Counters to hold number of bees and the number of
+ * times the bear has eaten. */
+int bees, times_eaten;
 
+/* Boolean to signal to the bees that the simulation is done. */
 bool done;
 
+/* The monitor for the bathroom. */
 monitor * mon;
 
-int main(int argc, char *argv[]) {
-  long l; /* use long in case of a 64-bit system */
-  done = false;
-  //Seed the rand function
-  srand(time(NULL));
-  pthread_attr_t attr;
-  pthread_t animal[MAXBEES + 1];
+/**
+ * Main method. First initializes and then reads the input of how
+ * many bees that should be in the simulation. Then
+ * creates the threads and then joins them again. */
+int main(int argc, char ** argv)
+{
+    pthread_t animals[MAX_BEES + 1]; /* The threads are saved here. */
+    pthread_attr_t attr; /* Attributes for the pthreads. */
 
-  /* set global thread attributes */
-  pthread_attr_init(&attr);
-  pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+    long index; /* For 64-bit systems. */
 
-  /* read command line args if any */
-  amountBees = (argc > 1)? atoi(argv[1]) : MAXBEES;
-  if (amountBees > MAXBEES) amountBees = MAXBEES;
+    times_eaten = 0;
 
-  mon = new monitor();
-  /* do the parallel work: create the workers */
-  for (l = 0; l < amountBees; l++){
-    pthread_create(&animal[l], &attr, bee, (void *) l);
-  }
-    pthread_create(&animal[amountBees], &attr, bear, NULL);
+    /* Simulation is not done by default. */
+    done = false;
 
-  for (l = 0; l < amountBees + 1; l++) {
-      pthread_join(animal[l], NULL);
-  }
-  delete mon;
-  pthread_exit(NULL);
-}
-
-   void *bee(void *arg) {
-     long number = (long)arg;
-     while (done == false) {
-       sleep((rand() % (MAX_GATHER_TIME - MIN_GATHER_TIME)) + MIN_GATHER_TIME);
-
-       if(done){
-         pthread_exit(NULL);
-       }
-       mon->fill_pot(number);
-       if(done){
-         pthread_exit(NULL);
-       }
-     }
-     pthread_exit(NULL);
-   }
-
-   void *bear(void *arg) {
-     while(true){
-      mon->eat_honey();
-      times_eaten++;
-      std::cout << "The bear has now eaten " << times_eaten << " out of " << MAXMEALS << " times." << std::endl;
-      if(times_eaten >= MAXMEALS){
-        done = true;
-        pthread_exit(NULL);
+    if(argc > 1){
+        /* We cap them at MAX_BEES. */
+        bees = (atoi(argv[1]) > MAX_BEES) ? MAX_BEES : atoi(argv[1]);
     }
-  }
+    else{
+      bees = MAX_BEES;
+    }
+
+    /* Initialize the attributes. */
+    pthread_attr_init(&attr);
+    pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+
+    /* Seed the randomizer with the time to provide different result every run. */
+    srand(time(NULL));
+
+    mon = new monitor(); /* Create the monitor. */
+    for(index = 0; index < bees; ++index) /* Spawn the bee threads. */
+    {
+        pthread_create(&animals[index], &attr, bee, (void *) index);
+    }
+    pthread_create(&animals[bees], &attr, bear, NULL);
+    for(int i = 0; i < bees + 1; ++i) /* Joins the threads again. */
+    {
+        pthread_join(animals[i], NULL);
+    }
+    delete mon; /* Delete the monitor when done. */
+    return EXIT_SUCCESS;
+}
+void * bee(void * input)
+{
+    long number = (long) input;
+    while(done == false)
+    {
+        /* Sleep to simulate time required to gather honey. */
+        sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
+
+        if(done) /* If the simulation is done. */
+        {
+            pthread_exit(NULL);
+        }
+        mon->fill_pot(number); /* Fills the pot with one portion of honey. */
+        if(done) /* If the simulation is done. */
+        {
+            pthread_exit(NULL);
+        }
+    }
+    pthread_exit(NULL);
+}
+void * bear(void * input)
+{
+    while(true)
+    {
+        mon->eat_honey(); /* Eat honey from the pot. */
+        /* Update times_eaten. */
+        times_eaten++; /* ONLY the bear can update this, therefore we do not need mutex. */
+        std::cout << "The bear has now eaten " << times_eaten << " out of " << MAXMEALS
+            << " times." << std::endl;
+        if(times_eaten >= MAXMEALS) /* If we are done eating. */
+        {
+            done = true; /* Signal to the bees that we are done. */
+            pthread_exit(NULL);
+        }
+    }
 }

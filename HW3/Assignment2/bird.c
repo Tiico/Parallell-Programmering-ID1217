@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <limits.h>
-#define CAPACITY 50  /* Pot CAPACITY */
-#define MAXBABYBIRDS 30   /* maximum number of baby birds */
+#define CAPACITY 5  /* Pot CAPACITY */
+#define MAXBABYBIRDS 10   /* maximum number of baby birds */
 #define MAXINTERVAL 5
 #define MININTERVAL 1
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   }
     pthread_create(&animal[amountBaby], &attr, mamabird, NULL);
 
-  for (l = 0; l < amountBaby; l++) {
+  for (l = 0; l < amountBaby + 1; l++) {
       pthread_join(animal[l], NULL);
   }
   pthread_exit(NULL);
@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
        sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
 
        sem_wait(&critSec);
+       dishCounter--;
        printf("Thread ID: %d eats from dish, (%d/%d)\n", id, dishCounter, CAPACITY);
        if (dishCounter == 0) {
          printf("Dish is empty!\n");
@@ -69,7 +70,6 @@ int main(int argc, char *argv[]) {
           sem_wait(&dishFull);
           printf("Mama filled the dish\n");
        }
-       dishCounter--;
        sem_post(&critSec);
      }
      pthread_exit(NULL);

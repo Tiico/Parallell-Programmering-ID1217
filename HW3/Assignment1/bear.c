@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <limits.h>
-#define CAPACITY 50  /* Pot CAPACITY */
+#define CAPACITY 5  /* Pot CAPACITY */
 #define MAXBEES 10   /* maximum number of bees */
 #define MAXMEALS 10  /* specify max amount of meals for the bear.*/
 #define MAXINTERVAL 5
