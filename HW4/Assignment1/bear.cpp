@@ -75,13 +75,12 @@ void * bee(void * input)
     long number = (long) input;
     while(done == false)
     {
-        /* Sleep to simulate time required to gather honey. */
-        sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
-
         if(done) /* If the simulation is done. */
         {
             pthread_exit(NULL);
         }
+        /* Sleep to simulate time required to gather honey. */
+        sleep((rand() % (MAXINTERVAL - MININTERVAL) + MININTERVAL));
         mon->fill_pot(number); /* Fills the pot with one portion of honey. */
         if(done) /* If the simulation is done. */
         {
