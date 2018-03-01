@@ -11,7 +11,7 @@ class monitor
         void fill_pot(long number); /* Fill the pot with one portion of honey. */
         void eat_honey(); /* Eats the honey once the pot is full. */
 
-        const static int MAX_COUNT_HONEY = 10; /* Max portions of honey in pot. */
+        const static int MAX_COUNT_HONEY = 5; /* Max portions of honey in pot. */
     private:
         pthread_cond_t pot_empty; /* Used to wait for the pot to be empty. */
         pthread_cond_t pot_full; /* Used to wait fot the pot to be full. */

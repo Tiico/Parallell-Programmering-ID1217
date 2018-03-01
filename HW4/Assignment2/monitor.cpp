@@ -6,6 +6,7 @@ monitor::monitor()
 {
     /* Initiates the lock and the condition variables. */
     pthread_mutex_init(&dish_lock, NULL);
+    pthread_mutex_init(&fill_lock, NULL);
     pthread_cond_init(&dish_empty, NULL);
     pthread_cond_init(&dish_full, NULL);
 
@@ -43,8 +44,10 @@ void monitor::eat_dish(long number)
  */
 void monitor::fill_dish()
 {
-    pthread_cond_wait(&dish_empty, &dish_lock);
-    printf("MamaBird fills the dish \n");
-    dish_count = (rand()%MAX_COUNT_DISH)+1;
-    pthread_cond_broadcast(&dish_full);
+    pthread_mutex_lock(&fill_lock);
+      pthread_cond_wait(&dish_empty, &dish_lock);
+      printf("MamaBird fills the dish \n");
+      dish_count = (rand()%MAX_COUNT_DISH)+1;
+      pthread_cond_broadcast(&dish_full);
+    pthread_mutex_unlock(&fill_lock);
 }
