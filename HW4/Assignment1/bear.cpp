@@ -23,7 +23,7 @@ int bees, times_eaten;
 /* Boolean to signal to the bees that the simulation is done. */
 bool done;
 
-/* The monitor for the bathroom. */
+/* The monitor. */
 monitor * mon;
 
 /**
