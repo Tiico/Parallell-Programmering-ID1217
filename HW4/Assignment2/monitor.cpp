@@ -26,15 +26,15 @@ monitor::~monitor()
 void monitor::eat_dish(long number)
 {
       pthread_mutex_lock(&dish_lock); /* Lock for mutex. */
-      if (dish_count > 0) {
-      dish_count--;
-      std::cout << "Babybird " << number << " eats from the dish (" << dish_count << "/" << MAX_COUNT_DISH << ")" << std::endl;
-      while (dish_count == 0) {
-        pthread_cond_broadcast(&dish_empty);
-        std::cout << "Babybird " << number << " chirps for more food" << std::endl;
-        pthread_cond_wait(&dish_full, &dish_lock);
+        if (dish_count > 0) {
+          dish_count--;
+          std::cout << "Babybird " << number << " eats from the dish (" << dish_count << "/" << MAX_COUNT_DISH << ")" << std::endl;
+          while (dish_count == 0) {
+            pthread_cond_broadcast(&dish_empty);
+            std::cout << "Babybird " << number << " chirps for more food" << std::endl;
+            pthread_cond_wait(&dish_full, &dish_lock);
+        }
       }
-    }
       pthread_mutex_unlock(&dish_lock); /* Unlock because we no longer need mutex. */
 }
 
