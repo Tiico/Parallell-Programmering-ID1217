@@ -93,7 +93,7 @@ void * mamabird(void * input)
     {
         mon->fill_dish();
         times_filled++; /* ONLY Mamabird can update this, therefore we do not need mutex. */
-        std::cout << "Mamabird has now eaten " << times_filled << "/" << MAXMEALS << " times." << std::endl;
+        std::cout << "Mamabird has now filled " << times_filled << "/" << MAXMEALS << " times." << std::endl;
         if(times_filled >= MAXMEALS) /* If we are done filling. */
         {
             done = true; /* Signal to the babybirds that we are done. */
