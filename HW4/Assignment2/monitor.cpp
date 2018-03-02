@@ -6,6 +6,7 @@ monitor::monitor()
 {
     /* Initiates the lock and the condition variables. */
     pthread_mutex_init(&dish_lock, NULL);
+    pthread_mutex_init(&fill_lock, NULL);
     pthread_cond_init(&dish_empty, NULL);
     pthread_cond_init(&dish_full, NULL);
 
@@ -26,6 +27,7 @@ monitor::~monitor()
 void monitor::eat_dish(long number)
 {
       pthread_mutex_lock(&dish_lock); /* Lock for mutex. */
+<<<<<<< HEAD
         if (dish_count > 0) {
           dish_count--;
           std::cout << "Babybird " << number << " eats from the dish (" << dish_count << "/" << MAX_COUNT_DISH << ")" << std::endl;
@@ -34,6 +36,15 @@ void monitor::eat_dish(long number)
             std::cout << "Babybird " << number << " chirps for more food" << std::endl;
             pthread_cond_wait(&dish_full, &dish_lock);
         }
+=======
+      if (dish_count > 0) {
+      dish_count--;
+      std::cout << "Babybird " << number << " eats from the dish (" << dish_count << "/" << MAX_COUNT_DISH << ")" << std::endl;
+      while (dish_count == 0) {
+        pthread_cond_broadcast(&dish_empty);
+        std::cout << "Babybird " << number << " chirps for more food----------------------------" << std::endl;
+        pthread_cond_wait(&dish_full, &dish_lock);
+>>>>>>> 1eea1bf6084af972aab0ad24c4b566eda5c10651
       }
       pthread_mutex_unlock(&dish_lock); /* Unlock because we no longer need mutex. */
 }
@@ -43,8 +54,10 @@ void monitor::eat_dish(long number)
  */
 void monitor::fill_dish()
 {
-    pthread_cond_wait(&dish_empty, &dish_lock);
-    printf("MamaBird fills the dish \n");
-    dish_count = (rand()%MAX_COUNT_DISH)+1;
-    pthread_cond_broadcast(&dish_full);
+    pthread_mutex_lock(&fill_lock);
+      pthread_cond_wait(&dish_empty, &dish_lock);
+      printf("MamaBird fills the dish \n");
+      dish_count = (rand()%MAX_COUNT_DISH)+1;
+      pthread_cond_broadcast(&dish_full);
+    pthread_mutex_unlock(&fill_lock);
 }
