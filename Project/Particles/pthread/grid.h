@@ -13,7 +13,8 @@ typedef struct linkedlist linkedlist_t;
 struct grid{
         int size;
         linkedlist_t ** grid;
-}
+        pthread_mutex_t * lock;
+};
 
 typedef struct grid grid_t;
 

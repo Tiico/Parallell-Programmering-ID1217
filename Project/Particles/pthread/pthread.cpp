@@ -4,7 +4,7 @@
 #include <math.h>
 #include <pthread.h>
 #include "common.h"
-
+#include "grid.h"
 //
 //  global variables
 //
@@ -12,11 +12,14 @@ int n, n_threads;
 particle_t *particles;
 FILE *fsave;
 pthread_barrier_t barrier;
+grid_t grid;
 
 //
 //  check that pthreads routine call was successful
 //
 #define P( condition ) {if( (condition) != 0 ) { printf( "\n FAILURE in %s, line %d\n", __FILE__, __LINE__ );exit( 1 );}}
+
+pthread_mutex_t work_lock = PTHREAD_MUTEX_INITIALIZER;
 
 //
 //  This is where the action happens
@@ -28,7 +31,7 @@ void *thread_routine( void *pthread_id )
     int particles_per_thread = (n + n_threads - 1) / n_threads;
     int first = min(  thread_id    * particles_per_thread, n );
     int last  = min( (thread_id+1) * particles_per_thread, n );
-    
+
     //
     //  simulate a number of time steps
     //
@@ -40,27 +43,51 @@ void *thread_routine( void *pthread_id )
         for( int i = first; i < last; i++ )
         {
             particles[i].ax = particles[i].ay = 0;
-            for (int j = 0; j < n; j++ )
-                apply_force( particles[i], particles[j] );
+            int gx = grid_coord(particles[i].x);
+            int gy = grid_coord(particles[i].y);
+
+            for (int nx = max(gx-1, 0); nx <= min(gx + 1, grid.size - 1); nx++) {
+                for (int ny = max(gy - 1, 0); ny <= min(gy + 1, grid.size - 1); ny++) {
+                    linkedlist_t * neighbour = grid.grid[nx * grid.size + ny];
+
+                      while (neighbour != 0)
+                      {
+                          apply_force( particles[i], *(neighbour->value));
+                          neighbour = neighbour->next;
+                      }
+                }
+            }
         }
-        
+
         pthread_barrier_wait( &barrier );
-        
+
         //
         //  move particles
         //
-        for( int i = first; i < last; i++ ) 
-            move( particles[i] );
-        
+        for( int i = first; i < last; i++ ){
+          int gc = grid_coord_flat(grid.size, particles[i].x, particles[i].y);
+            move(particles[i]);
+
+            // Re-add the particle if it has changed grid position
+            if (gc != grid_coord_flat(grid.size, particles[i].x, particles[i].y))
+            {
+              if (! grid_remove(grid, &particles[i], gc))
+              {
+                fprintf(stdout, "Error: Failed to remove particle '%p'. Code must be faulty. Blame source writer.\n", &particles[i]);
+                exit(3);
+              }
+              grid_add(grid, &particles[i]);
+            }
+          }
         pthread_barrier_wait( &barrier );
-        
+
         //
         //  save if necessary
         //
         if( thread_id == 0 && fsave && (step%SAVEFREQ) == 0 )
             save( fsave, n, particles );
     }
-    
+
     return NULL;
 }
 
@@ -68,7 +95,7 @@ void *thread_routine( void *pthread_id )
 //  benchmarking program
 //
 int main( int argc, char **argv )
-{    
+{
     //
     //  process command line
     //
@@ -81,45 +108,51 @@ int main( int argc, char **argv )
         printf( "-o <filename> to specify the output file name\n" );
         return 0;
     }
-    
+
     n = read_int( argc, argv, "-n", 1000 );
     n_threads = read_int( argc, argv, "-p", 2 );
     char *savename = read_string( argc, argv, "-o", NULL );
-    
+
     //
     //  allocate resources
     //
     fsave = savename ? fopen( savename, "w" ) : NULL;
 
     particles = (particle_t*) malloc( n * sizeof(particle_t) );
-    set_size( n );
+    double size = set_size( n );
     init_particles( n, particles );
+
+    int gridSize = (size/cutoff) + 1;
+    grid_init(grid, gridSize);
+      for (int i = 0; i < n; ++i) {
+        grid_add(grid, &particles[i]);
+      }
 
     pthread_attr_t attr;
     P( pthread_attr_init( &attr ) );
     P( pthread_barrier_init( &barrier, NULL, n_threads ) );
 
     int *thread_ids = (int *) malloc( n_threads * sizeof( int ) );
-    for( int i = 0; i < n_threads; i++ ) 
+    for( int i = 0; i < n_threads; i++ )
         thread_ids[i] = i;
 
     pthread_t *threads = (pthread_t *) malloc( n_threads * sizeof( pthread_t ) );
-    
+
     //
     //  do the parallel work
     //
     double simulation_time = read_timer( );
-    for( int i = 1; i < n_threads; i++ ) 
+    for( int i = 1; i < n_threads; i++ )
         P( pthread_create( &threads[i], &attr, thread_routine, &thread_ids[i] ) );
-    
+
     thread_routine( &thread_ids[0] );
-    
-    for( int i = 1; i < n_threads; i++ ) 
+
+    for( int i = 1; i < n_threads; i++ )
         P( pthread_join( threads[i], NULL ) );
     simulation_time = read_timer( ) - simulation_time;
-    
+
     printf( "n = %d, n_threads = %d, simulation time = %g seconds\n", n, n_threads, simulation_time );
-    
+
     //
     //  release resources
     //
@@ -130,6 +163,6 @@ int main( int argc, char **argv )
     free( particles );
     if( fsave )
         fclose( fsave );
-    
+
     return 0;
 }

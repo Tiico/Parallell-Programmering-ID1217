@@ -19,19 +19,34 @@ void grid_init(grid_t &grid, int size){
       exit(1);
     }
 
-    memset(grid.grid, 0, sizeof(linkelist**) * size * size);
+    memset(grid.grid, 0, sizeof(linkedlist**) * size * size);
+
+    //initialize locks
+
+    grid.lock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t*) * size * size);
+
+    if (grid.lock == NULL) {
+      fprintf(stderr, "Error: Could not allocate space in memory for the locks\n");
+      exit(1);
+    }
+
+    for (int i = 0; i < size*size; i++) {
+        pthread_mutex_init(&grid.lock[i], NULL);
+    }
 }
 
-void grid_add(grid_t grid, particle_t p){
+void grid_add(grid_t &grid, particle_t* p){
      int gridCoord = grid_coord_flat(grid.size, p->x, p->y);
 
-     linkedlist_t * newElement = (linkelist_t *) malloc(sizeof(linkelist));
+     linkedlist_t * newElement = (linkedlist_t *) malloc(sizeof(linkedlist));
      newElement->value = p;
 
-     //Crit sec
+
+     pthread_mutex_lock(&grid.lock[gridCoord]);  //Crit sec
      newElement->next = grid.grid[gridCoord];
      grid.grid[gridCoord] = newElement;
-     //end of Crit sec
+     pthread_mutex_unlock(&grid.lock[gridCoord]);  //end of Crit sec
+
 }
 
 bool grid_remove(grid_t &grid, particle_t * p, int gridCoord) {
@@ -44,9 +59,9 @@ bool grid_remove(grid_t &grid, particle_t * p, int gridCoord) {
         return false;
     }
 
-    //Crit sec
 
-    linkelist_t ** nodePointer = &(grid.grid[gridCoord]);
+    pthread_mutex_lock(&grid.lock[gridCoord]); //Crit sec
+    linkedlist_t ** nodePointer = &(grid.grid[gridCoord]);
     linkedlist_t * current = grid.grid[gridCoord];
 
     while (current && (current->value != p))
@@ -58,7 +73,9 @@ bool grid_remove(grid_t &grid, particle_t * p, int gridCoord) {
         *nodePointer = current->next;
         free(current);
     }
-    //end of crit sec
+
+    pthread_mutex_unlock(&grid.lock[gridCoord]); //end of crit sec
+
 
     return !!current;
 }
@@ -68,7 +85,7 @@ void grid_clear(grid_t &grid){
         linkedlist_t * curr = grid.grid[i];
         while(curr != 0){
             linkedlist_t * tmp = curr->next;
-            free curr;
+            free(curr);
             curr = tmp;
         }
     }
@@ -78,7 +95,7 @@ void grid_clear(grid_t &grid){
 int grid_size(grid_t &grid){
     int count = 0;
     for (int i = 0; i < grid.size * grid.size; ++i) {
-        linkelist_t * curr = grid.grid[i];
+        linkedlist_t * curr = grid.grid[i];
         while (curr != 0) {
             count++;
             curr = curr->next;
