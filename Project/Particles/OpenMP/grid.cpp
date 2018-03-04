@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
+#include <omp.h>
 #include <math.h>
 
 #include "grid.h"
@@ -21,17 +21,16 @@ void grid_init(grid_t &grid, int size){
 
     memset(grid.grid, 0, sizeof(linkedlist**) * size * size);
 
-    //initialize locks
+    grid.lock = (omp_lock_t*)malloc(size * size * sizeof(omp_lock_t));
 
-    grid.lock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t*) * size * size);
-
-    if (grid.lock == NULL) {
-      fprintf(stderr, "Error: Could not allocate space in memory for the locks\n");
+    if (grid.lock == NULL)
+    {
+      fprintf(stderr, "Error: Could not allocate memory for the locks!\n");
       exit(2);
     }
 
     for (int i = 0; i < size*size; i++) {
-        pthread_mutex_init(&grid.lock[i], NULL);
+      omp_init_lock(&grid.lock[i]);
     }
 }
 
@@ -41,12 +40,12 @@ void grid_add(grid_t &grid, particle_t* p){
      linkedlist_t * newElement = (linkedlist_t *) malloc(sizeof(linkedlist));
      newElement->value = p;
 
-
-     pthread_mutex_lock(&grid.lock[gridCoord]);  //Crit sec
+     omp_set_lock(&grid.lock[gridCoord]);
+     //Crit sec
      newElement->next = grid.grid[gridCoord];
      grid.grid[gridCoord] = newElement;
-     pthread_mutex_unlock(&grid.lock[gridCoord]);  //end of Crit sec
-
+     //end of Crit sec
+     omp_unset_lock(&grid.lock[gridCoord]);
 }
 
 bool grid_remove(grid_t &grid, particle_t * p, int gridCoord) {
@@ -59,8 +58,8 @@ bool grid_remove(grid_t &grid, particle_t * p, int gridCoord) {
         return false;
     }
 
-
-    pthread_mutex_lock(&grid.lock[gridCoord]); //Crit sec
+    //Crit sec
+    omp_set_lock(&grid.lock[gridCoord]);
     linkedlist_t ** nodePointer = &(grid.grid[gridCoord]);
     linkedlist_t * current = grid.grid[gridCoord];
 
@@ -73,9 +72,8 @@ bool grid_remove(grid_t &grid, particle_t * p, int gridCoord) {
         *nodePointer = current->next;
         free(current);
     }
-
-    pthread_mutex_unlock(&grid.lock[gridCoord]); //end of crit sec
-
+    omp_unset_lock(&grid.lock[gridCoord]);
+    //end of crit sec
 
     return !!current;
 }
