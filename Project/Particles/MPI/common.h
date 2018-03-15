@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <stdio.h>
-#include <mpi.h>
 #include <math.h>
 
 //
@@ -33,7 +32,6 @@ const int SAVEFREQ = 10;
 //
 typedef struct
 {
-  int id;
   double x;
   double y;
   double vx;
