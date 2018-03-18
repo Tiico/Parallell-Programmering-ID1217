@@ -1,9 +1,8 @@
-#ifndef __CS267_COMMON_H__
-#define __CS267_COMMON_H__
+#ifndef __CS_COMMON_H__
+#define __CS_COMMON_H__
 
-#include <iostream>
 #include <stdio.h>
-#include <math.h>
+#include <mpi.h>
 
 //
 //  tuned constants
@@ -14,24 +13,22 @@
 #define min_r   (cutoff/100)
 #define dt      0.0005
 
-inline int min( int a, int b ) {
-   return a < b ? a : b;
- }
-inline int max( int a, int b ) {
-   return a > b ? a : b;
- }
+inline int Min( int a, int b ) { return a < b ? a : b; }
+inline int Max( int a, int b ) { return a > b ? a : b; }
 
 //
 //  saving parameters
 //
-const int NSTEPS = 1000;
+const int NSTEPS = 4000;
 const int SAVEFREQ = 10;
+
 
 //
 // particle data structure
 //
 typedef struct
 {
+  int id;
   double x;
   double y;
   double vx;
@@ -39,6 +36,7 @@ typedef struct
   double ax;
   double ay;
 } particle_t;
+
 
 //
 //  timing routines
@@ -57,7 +55,7 @@ void move( particle_t &p );
 //  I/O routines
 //
 FILE *open_save( char *filename, int n );
-void save( FILE *f, int n, particle_t *p );
+void save( FILE * f, int rank, int n, particle_t *p, int * locals, int local_size, MPI_Datatype PARTICLE);
 
 //
 //  argument processing routines
