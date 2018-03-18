@@ -54,11 +54,7 @@ double set_size( int n )
 void init_particles( int n, particle_t *p )
 {
 	long seed = (long)time(NULL);
-#ifdef _WIN32
-	srand(seed);
-#else
 	srand48(seed);
-#endif
 	int sx = (int)ceil(sqrt((double)n));
 	int sy = (n+sx-1)/sx;
 
