@@ -34,8 +34,6 @@ void *thread_routine( void *pthread_id )
     int first = Min(  thread_id    * particles_per_thread, n );
     int last  = Min( (thread_id+1) * particles_per_thread, n );
 
-    //printf("Thread %d running, particles %d -> %d.\n", thread_id, first, last);
-
     // Simulate a number of time steps
     for( int step = 0; step < nsteps; step++ )
     {

@@ -6,11 +6,8 @@
 #include <math.h>
 #include <time.h>
 #include <limits.h>
-#ifndef _WIN32
 #include <sys/time.h>
-#else
-#include "gettimeofday.h"
-#endif
+
 
 #include "common.h"
 
@@ -57,11 +54,7 @@ double set_size( int n )
 void init_particles( int n, particle_t *p )
 {
 	long seed = (long)time(NULL);
-#ifdef _WIN32
-	srand(seed);
-#else
 	srand48(seed);
-#endif
 	int sx = (int)ceil(sqrt((double)n));
 	int sy = (n+sx-1)/sx;
 
@@ -75,13 +68,8 @@ void init_particles( int n, particle_t *p )
 		//  make sure particles are not spatially sorted
 		//
 		long seed = (long)time(NULL);
-#ifdef _WIN32
-		srand(seed);
-		int j = rand()%(n-i);
-#else
 		srand48(seed);
 		int j = lrand48()%(n-i);
-#endif
 		int k = shuffle[j];
 		shuffle[j] = shuffle[n-i-1];
 
@@ -94,13 +82,8 @@ void init_particles( int n, particle_t *p )
 		//
 		//  assign random velocities within a bound
 		//
-#ifdef _WIN32
-		p[i].vx = (double)(rand()/(double)INT_MAX)*2-1;
-		p[i].vy = (double)(rand()/(double)INT_MAX)*2-1;
-#else
 		p[i].vx = drand48()*2-1;
 		p[i].vy = drand48()*2-1;
-#endif
 	}
 	free( shuffle );
 }
