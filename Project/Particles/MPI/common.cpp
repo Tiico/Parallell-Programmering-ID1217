@@ -54,7 +54,7 @@ double set_size( int n )
 void init_particles( int n, particle_t *p )
 {
 	long seed = (long)time(NULL);
-	srand48(seed);
+	srand(seed);
 	int sx = (int)ceil(sqrt((double)n));
 	int sy = (n+sx-1)/sx;
 
@@ -69,8 +69,8 @@ void init_particles( int n, particle_t *p )
 		//
 		long seed = (long)time(NULL);
 
-		srand48(seed);
-		int j = lrand48()%(n-i);
+		srand(seed);
+		int j = rand()%(n-i);
 		int k = shuffle[j];
 		shuffle[j] = shuffle[n-i-1];
 
