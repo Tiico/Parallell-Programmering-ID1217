@@ -19,7 +19,7 @@ void grid_init(grid_t &grid, int size){
       exit(1);
     }
 
-    memset(grid.grid, 0, sizeof(linkedlist**) * size * size);
+    memset(grid.grid, 0, sizeof(linkedlist**) * size * size); //set 0
 }
 
 void grid_add(grid_t &grid, particle_t* p){
